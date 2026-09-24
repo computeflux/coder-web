@@ -50,6 +50,7 @@ For port and hostname, command-line options override the corresponding environme
 | `PI_WEB_ALLOWED_HOSTS` | Additional exact proxy or custom hostnames, comma-separated | Unset |
 | `PI_WEB_PASSWORD` | Enable HTTP Basic Auth; the username is always `pi` | Authentication disabled |
 | `PI_WEB_IDLE_TIMEOUT_MS` | Session idle timeout in milliseconds, up to `2147483647`; `0` disables idle shutdown; invalid or out-of-range values use the default | `600000` (10 min) |
+| `PI_WEB_DEFAULT_CWD` | Default working directory for a fresh session (no `?cwd=` / `?session=` in the URL). Must point at an existing directory; falls back to `~/pi-cwd-<YYYYMMDD>` otherwise | `~/pi-cwd-<YYYYMMDD>` |
 
 For example:
 

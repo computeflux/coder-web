@@ -60,10 +60,10 @@ const inputStyle: CSSProperties = {
   height: 34,
   padding: "0 9px",
   border: "1px solid var(--border)",
-  borderRadius: 5,
+  borderRadius: 0,
   background: "var(--bg)",
   color: "var(--text)",
-  fontSize: 12,
+  fontSize: 14,
   outline: "none",
 };
 
@@ -127,7 +127,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function Toggle({ checked, disabled, label, onChange }: { checked: boolean; disabled: boolean; label: string; onChange: (checked: boolean) => void }) {
   return (
-    <label style={{ display: "flex", alignItems: "center", gap: 7, color: disabled ? "var(--text-dim)" : "var(--text-muted)", fontSize: 12, cursor: disabled ? "default" : "pointer" }}>
+    <label style={{ display: "flex", alignItems: "center", gap: 7, color: disabled ? "var(--text-dim)" : "var(--text-muted)", fontSize: 14, cursor: disabled ? "default" : "pointer" }}>
       <input type="checkbox" checked={checked} disabled={disabled} onChange={(event) => onChange(event.target.checked)} />
       {label}
     </label>
@@ -511,14 +511,14 @@ export function AgentsConfig({
 
                   {creating && (
                     <Field label={t("agents.saveScope")}>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3, padding: 3, border: "1px solid var(--border)", borderRadius: 5, background: "var(--bg-panel)" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3, padding: 3, border: "1px solid var(--border)", borderRadius: 0, background: "var(--bg-panel)" }}>
                         {(["global", "project"] as const).map((scope) => (
                           <button
                             key={scope}
                             type="button"
                             onClick={() => setTargetScope(scope)}
                             disabled={saving}
-                            style={{ height: 28, border: "none", borderRadius: 4, background: targetScope === scope ? "var(--bg-selected)" : "transparent", color: targetScope === scope ? "var(--text)" : "var(--text-muted)", cursor: saving ? "default" : "pointer", fontSize: 11, fontWeight: targetScope === scope ? 600 : 400 }}
+                            style={{ height: 28, border: "none", borderRadius: 0, background: targetScope === scope ? "var(--bg-selected)" : "transparent", color: targetScope === scope ? "var(--text)" : "var(--text-muted)", cursor: saving ? "default" : "pointer", fontSize: 12, fontWeight: targetScope === scope ? 600 : 400 }}
                           >
                             {t(`agents.scope.${scope}`)}
                           </button>
@@ -578,7 +578,7 @@ export function AgentsConfig({
                           variant="field"
                           placement="auto"
                         />
-                        {modelsError && <span style={{ color: "#ef4444", fontSize: 10 }}>{modelsError}</span>}
+                        {modelsError && <span style={{ color: "var(--err)", fontSize: 10 }}>{modelsError}</span>}
                       </div>
                     </Field>
                     <Field label={t("agents.thinking")}>
@@ -600,7 +600,7 @@ export function AgentsConfig({
           </ConfigDetailStack>
         </ConfigDetail>
       </ConfigSplitView>
-      <ConfigFooter status={(settingsError || error) && <span role="alert" style={{ color: "#ef4444" }}>{settingsError || error}</span>}>
+      <ConfigFooter status={(settingsError || error) && <span role="alert" style={{ color: "var(--err)" }}>{settingsError || error}</span>}>
         {editing && (
           <ConfigButton
             variant="primary"

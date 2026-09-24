@@ -46,7 +46,7 @@ export function TerminalPanel({ tab, active, onRestart, onClosed, onCloseError }
     const terminal = new Terminal({
       cursorBlink: true,
       fontFamily: getComputedStyle(container).getPropertyValue("--font-mono").trim() || "monospace",
-      fontSize: 13,
+      fontSize: 14,
       lineHeight: 1.25,
       scrollback: 8000,
       screenReaderMode: true,

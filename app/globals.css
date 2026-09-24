@@ -11,48 +11,54 @@
   --color-text-muted: var(--text-muted);
   --color-text-dim: var(--text-dim);
   --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
   --color-accent-hover: var(--accent-hover);
   --color-user-bg: var(--user-bg);
   --color-assistant-bg: var(--assistant-bg);
   --color-tool-bg: var(--tool-bg);
   --color-bg-subtle: var(--bg-subtle);
+  --color-ok: var(--ok);
+  --color-err: var(--err);
+  --color-warn: var(--warn);
+  --color-info: var(--info);
   --font-mono-font: var(--font-mono);
 }
 
+/* ── Monochrome "Ink" — pure black canvas, white ink ─────────────────
+   The only information dimension is white opacity: 100 / 70 / 45 / 25.
+   No gray surfaces, no rounded corners, no shadows — only 1px hairlines.
+   (Adapted from the minishop Ink theme.) */
 :root {
-  --bg: #ffffff;
-  --bg-panel: #f5f5f5;
-  --bg-hover: #eeeeee;
-  --bg-selected: #e8e8e8;
-  --border: #e0e0e0;
-  --text: #1a1a1a;
-  --text-muted: #6b7280;
-  --text-dim: #9ca3af;
-  --accent: #2563eb;
-  --accent-hover: #1d4ed8;
-  --user-bg: #eff6ff;
-  --assistant-bg: #ffffff;
-  --tool-bg: #f9fafb;
-  --bg-subtle: rgba(0,0,0,0.03);
+  --bg: #000000;
+  --bg-panel: #000000;
+  --bg-hover: rgba(255,255,255,0.06);
+  --bg-selected: rgba(255,255,255,0.10);
+  --border: #ebb5b52b;
+  --text: #ffffff;
+  --text-muted: #8c8c8c;
+  --text-dim: #474747;
+  --accent: #ffffff;
+  --accent-foreground: #000000;
+  --accent-hover: rgba(255,255,255,0.85);
+  --user-bg: rgba(255,255,255,0.08);
+  --assistant-bg: #000000;
+  --tool-bg: rgba(255,255,255,0.04);
+  --bg-subtle: rgba(255,255,255,0.04);
+  /* muted semantic — functional status/diff, kept low-saturation so the
+     monochrome canvas stays dominant */
+  --ok: #86efac;
+  --ok-dim: rgba(134,239,172,0.12);
+  --err: #fca5a5;
+  --err-dim: rgba(252,165,165,0.10);
+  --warn: #fcd34d;
+  --info: #93c5fd;
   --chat-content-max-width: 820px;
-  --chat-content-font-size: 14px;
+  --chat-content-font-size: 15px;
 }
 
+/* .dark is a no-op alias — the app is always "Ink" (pure black). */
 html.dark {
-  --bg: #1a1a1a;
-  --bg-panel: #242424;
-  --bg-hover: #2e2e2e;
-  --bg-selected: #383838;
-  --border: #3a3a3a;
-  --text: #e8e8e8;
-  --text-muted: #9ca3af;
-  --text-dim: #6b7280;
-  --accent: #60a5fa;
-  --accent-hover: #93c5fd;
-  --user-bg: #1e293b;
-  --assistant-bg: #1a1a1a;
-  --tool-bg: #1f2937;
-  --bg-subtle: rgba(255,255,255,0.04);
+  /* intentionally empty: :root already defines the Ink palette */
 }
 
 /* WebKit reports dvh/innerHeight without the status-bar strip for installed
@@ -119,8 +125,12 @@ html, body {
   overflow: hidden;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 14px;
+  font-family: "Inter", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-feature-settings: "cv11", "ss01";
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   overscroll-behavior: none;
 }
 
@@ -149,7 +159,7 @@ body {
   background: #181b21;
   color: #9ca3af;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .terminal-panel-path {
@@ -196,7 +206,7 @@ body {
   padding: 7px 12px;
   color: #9ca3af;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .terminal-panel-header button:hover {
@@ -210,7 +220,7 @@ body {
   background: #321b1b;
   color: #fca5a5;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .terminal-xterm {
@@ -234,16 +244,66 @@ body {
   background-color: #111318;
 }
 
+/* Hairline scrollbar — white/15 on the black canvas (Ink). */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 2px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 9999px;
+}
+* {
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+  scrollbar-width: thin;
+}
+
+/* Selection — white ink on black (Ink). */
+::selection {
+  background: #ffffff;
+  color: #000000;
+}
+
+/* ── Ink design-kit utilities (mirrors the minishop kit) ─────────────
+   micro labels, display headings, mono numbers, hairline panels. */
+.micro-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: rgba(255,255,255,0.40);
+}
+.display {
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.panel {
+  border: 1px solid rgba(255,255,255,0.10);
+  background: transparent;
+}
+.panel-hover {
+  border: 1px solid rgba(255,255,255,0.10);
+  background: transparent;
+  transition: border-color 0.2s ease;
+}
+.panel-hover:hover {
+  border-color: rgba(255,255,255,0.30);
+}
+.focus-ink {
+  outline: none;
+}
+.focus-ink:focus-visible {
+  outline: 1px solid rgba(255,255,255,0.60);
+  outline-offset: -1px;
 }
 
 
@@ -283,7 +343,7 @@ body {
   overflow: hidden;
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -326,7 +386,7 @@ body {
   background: transparent;
   color: var(--text-muted);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   text-align: left;
 }
 
@@ -448,7 +508,7 @@ button.extension-widget-trigger:focus-visible {
   min-width: 0;
   color: var(--text-muted);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.45;
   white-space: pre;
 }
@@ -696,7 +756,7 @@ pre, code {
 .compaction-file-title {
   margin-bottom: 4px;
   color: var(--text);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 650;
 }
 .compaction-file-list {
@@ -708,7 +768,7 @@ pre, code {
   border-radius: 6px;
   background: var(--bg-panel);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.45;
   list-style: none;
 }
@@ -736,7 +796,7 @@ pre, code {
   background: var(--bg-panel);
   border-bottom: 1px solid var(--border);
   color: var(--text-dim);
-  font-size: 11px;
+  font-size: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -760,7 +820,7 @@ pre, code {
   color: var(--text-muted);
   cursor: pointer;
   font: inherit;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.25;
 }
 .markdown-code-action:hover:not(:disabled) {
@@ -920,7 +980,7 @@ pre, code {
   overflow: hidden;
   color: var(--text-muted);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1019,7 +1079,7 @@ pre, code {
   }
 
   .mermaid-zoom-title {
-    font-size: 10px;
+    font-size: 11px;
   }
 
   .mermaid-zoom-viewport {
@@ -1086,7 +1146,7 @@ pre, code {
   border: 0;
   border-left: 1px solid var(--border);
   font: inherit;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0;
   cursor: pointer;

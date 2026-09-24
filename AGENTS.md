@@ -178,6 +178,10 @@ Newer pi emits `compaction_start` / `compaction_end`; older versions emitted `au
 - `/api/cwd/validate`, `/api/default-cwd`, and `/api/worktrees` call `allowFileRoot()` when they make a new location browsable.
 - Allowed roots are stored slash-normalized, but that is a Set-key convention, not a correctness requirement: `isPathWithinRoots()` (`lib/path-security.ts`, the single implementation behind `isFilePathAllowed()`) re-resolves and case-folds both sides, so either path form authorizes correctly. Keep that one implementation — it is the security boundary.
 
+### Default working directory
+- With no `?cwd=` / `?session=` URL param, the sidebar's `handleDefaultCwd` calls `POST /api/default-cwd`, which previously always created an empty `~/pi-cwd-<YYYYMMDD>`.
+- `PI_WEB_DEFAULT_CWD` (set in the systemd unit / env file) overrides this: when it points at an existing directory, that directory becomes the default workspace; a missing path falls through to the dated sandbox rather than wedging the UI. See `app/api/default-cwd/route.ts`.
+
 ### Plugins and skills
 - `/api/plugins` uses pi's `SettingsManager` + `DefaultPackageManager` for global/project package install, remove, update, enable, and disable. Disabling writes empty `extensions/skills/prompts/themes` arrays for that package entry.
 - `/api/skills` uses `DefaultResourceLoader` so settings paths, package skills, and project `.agents/skills` are listed the same way the runtime sees them.

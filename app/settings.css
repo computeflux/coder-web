@@ -241,7 +241,7 @@
 }
 
 .agents-feature-copy > .agents-feature-reload-notice {
-  color: #d97706;
+  color: var(--warn);
 }
 
 .agents-feature-actions {
@@ -258,7 +258,7 @@
 }
 
 .config-sidebar-message.is-error {
-  color: #ef4444;
+  color: var(--err);
 }
 
 .config-sidebar-message.is-empty {
@@ -400,15 +400,15 @@
 .config-scope-tag {
   flex-shrink: 0;
   padding: 1px 5px;
-  border-radius: 3px;
-  background: rgba(120, 120, 120, 0.12);
+  border-radius: 0;
+  background: var(--bg-subtle);
   color: var(--text-dim);
   font-size: 10px;
 }
 
 .config-scope-tag.is-project {
-  background: rgba(99, 102, 241, 0.12);
-  color: rgba(99, 102, 241, 0.8);
+  background: var(--bg-subtle);
+  color: var(--text-muted);
 }
 
 .config-trust-notice {
@@ -486,11 +486,11 @@
 }
 
 .skill-update-status.is-success {
-  color: #16a34a;
+  color: var(--ok);
 }
 
 .skill-update-status.is-error {
-  color: #ef4444;
+  color: var(--err);
 }
 
 .skill-description {
@@ -566,7 +566,7 @@
 .config-button-primary {
   border-color: var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-foreground);
   font-weight: 600;
 }
 
@@ -577,9 +577,9 @@
 }
 
 .config-button-danger {
-  border-color: rgba(239, 68, 68, 0.35);
-  background: rgba(239, 68, 68, 0.06);
-  color: #ef4444;
+  border-color: rgba(252, 165, 165, 0.35);
+  background: var(--err-dim);
+  color: var(--err);
 }
 
 .config-button-ghost {
@@ -601,8 +601,8 @@
 }
 
 .config-button-danger:not(:disabled):hover {
-  border-color: rgba(239, 68, 68, 0.5);
-  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(252, 165, 165, 0.5);
+  background: rgba(252, 165, 165, 0.15);
 }
 
 .config-button:focus-visible {
@@ -616,8 +616,9 @@
 }
 
 .config-button-primary.is-success {
-  border-color: #16a34a;
-  background: #16a34a;
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-foreground);
   animation: saved-pop 0.45s ease;
 }
 
@@ -1115,7 +1116,7 @@
 
 .settings-general-error {
   margin: 8px 0 0;
-  color: #ef4444;
+  color: var(--err);
   font-size: 11px;
 }
 
@@ -1177,9 +1178,9 @@
 }
 
 @keyframes saved-pop {
-  0%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.55); }
-  40%  { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(74, 222, 128, 0.25); }
-  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+  0%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.55); }
+  40%  { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.25); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
 }
 
 @keyframes saved-check-draw {
@@ -1215,4 +1216,24 @@
       padding-left: max(59px, env(safe-area-inset-left));
     }
   }
+}
+
+/* ── Ink: square corners + no shadow on all config/settings surfaces ──
+   (Small circular controls — switch knob, radio, status dot — keep their
+   shape; only panels, buttons, cards, and inputs are squared.) */
+.config-close-button,
+.config-sidebar-item,
+.config-button,
+.config-list-action-button,
+.settings-theme-option,
+.settings-language-option,
+.settings-shell-option,
+.settings-mobile-section-picker,
+.config-panel-root.is-modal > .config-panel-surface,
+.settings-dialog-surface {
+  border-radius: 0;
+}
+.config-panel-root.is-modal > .config-panel-surface,
+.settings-dialog-surface {
+  box-shadow: none;
 }

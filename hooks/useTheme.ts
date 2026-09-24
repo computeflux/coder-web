@@ -43,9 +43,11 @@ function resolveTheme(preference: ThemePreference): ResolvedTheme {
   return preference === "auto" ? getSystemTheme() : preference;
 }
 
-function applyDomTheme(theme: ResolvedTheme): void {
+function applyDomTheme(): void {
   if (typeof document === "undefined") return;
-  document.documentElement.classList.toggle("dark", theme === "dark");
+  // Always "Ink" — the app is pure black regardless of the stored preference,
+  // so the dark class (and mermaid / syntax dark themes) are always on.
+  document.documentElement.classList.add("dark");
 }
 
 function ensureState(): ThemeState {
@@ -54,13 +56,13 @@ function ensureState(): ThemeState {
 
   const preference = readStoredPreference();
   const theme = resolveTheme(preference);
-  applyDomTheme(theme);
+  applyDomTheme();
   state = { preference, theme };
   return state;
 }
 
 function setThemeState(preference: ThemePreference, theme: ResolvedTheme, persist: boolean): void {
-  applyDomTheme(theme);
+  applyDomTheme();
   if (persist) {
     try {
       localStorage.setItem(STORAGE_KEY, preference);
@@ -175,6 +177,6 @@ export function useTheme() {
     preference: snapshot.preference,
     setThemePreference,
     toggleTheme,
-    isDark: snapshot.theme === "dark",
+    isDark: true,
   };
 }

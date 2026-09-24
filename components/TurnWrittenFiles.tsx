@@ -33,12 +33,12 @@ export function TurnWrittenFiles({ files, onOpenFile }: {
               alignItems: "center",
               gap: 4,
               padding: "2px 8px",
-              fontSize: 12,
+              fontSize: 14,
               fontFamily: "var(--font-mono)",
               color: "var(--text)",
               background: "var(--bg-subtle)",
               border: "1px solid var(--border)",
-              borderRadius: 6,
+              borderRadius: 0,
               cursor: "pointer",
             }}
           >
