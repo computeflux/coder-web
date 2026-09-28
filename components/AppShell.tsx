@@ -18,6 +18,7 @@ import { AgentSessionPanel } from "./AgentSessionPanel";
 import { TerminalPanel } from "./TerminalPanel";
 import { newTerminalTab, restoreTerminalTabs, TERMINAL_TABS_KEY, type TerminalTab } from "./terminal-tab-state";
 import { useI18n } from "@/hooks/useI18n";
+import { AuthStatusButton } from "./AuthStatusButton";
 import { useIsMobile, useIsNarrowMobile } from "@/hooks/useIsMobile";
 import { useViewportHeight } from "@/hooks/useViewportHeight";
 import { useResizablePanel } from "@/hooks/useResizablePanel";
@@ -1585,6 +1586,7 @@ export function AppShell() {
           </svg>
           {!mobile && <span>{translate("tools.label")}</span>}
         </button>
+        {mobile && <AuthStatusButton />}
         {mobile && renderLanguageButton(true)}
       </div>
     );
@@ -2028,6 +2030,7 @@ export function AppShell() {
           )}
           {!isMobile && (
             <>
+              <AuthStatusButton />
               {renderLanguageButton(false)}
               {renderProjectTrustWarning(false)}
               {renderChatToolbarActions(false)}

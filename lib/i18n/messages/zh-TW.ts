@@ -7,6 +7,9 @@ export const zhTWLocale: LocalePlugin = {
   messages: {
     "common.ok": "確定",
     "common.language": "語言",
+    "auth.login": "登入",
+    "auth.logout": "登出",
+    "auth.account": "帳戶",
     "common.models": "模型",
     "common.skills": "技能",
     "common.agents": "子代理",

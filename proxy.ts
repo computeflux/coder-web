@@ -3,12 +3,9 @@ import {
   isApiRequestAllowed,
   isApiRequestHostAllowed,
 } from "@/lib/request-security";
-import {
-  isValidBasicAuthorization,
-  isWebPasswordEnabled,
-} from "@/lib/web-auth";
+import { isAuthEnabled, verifyBearerToken } from "@/lib/auth-verify";
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const isApiRequest = request.nextUrl.pathname === "/api"
     || request.nextUrl.pathname.startsWith("/api/");
   const isTrustedRequest = isApiRequest
@@ -22,18 +19,16 @@ export function proxy(request: NextRequest) {
     return NextResponse.json({ error: "Untrusted API request" }, { status: 403 });
   }
 
-  const password = process.env.PI_WEB_PASSWORD;
-  if (
-    isWebPasswordEnabled(password)
-    && !isValidBasicAuthorization(request.headers.get("authorization"), password)
-  ) {
-    return new NextResponse("Authentication required", {
-      status: 401,
-      headers: {
-        "Cache-Control": "no-store",
-        "WWW-Authenticate": 'Basic realm="Pi Web", charset="UTF-8"',
-      },
-    });
+  // 统一认证（apps/auth :8008）：Bearer JWT 本地 JWKS 验签。
+  // AUTH_URL 为空时直通（兼容未部署 auth 的环境，如 e2e）。
+  if (isAuthEnabled()) {
+    const user = await verifyBearerToken(request.headers.get("authorization"));
+    if (!user) {
+      return NextResponse.json({ error: "Authentication required" }, {
+        status: 401,
+        headers: { "Cache-Control": "no-store" },
+      });
+    }
   }
 
   return NextResponse.next();

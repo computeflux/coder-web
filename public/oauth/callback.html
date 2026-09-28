@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>OAuth callback</title>
+</head>
+<body>
+  <p>Returning to the app…</p>
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var provider = params.get("provider") || "google";
+      var type = provider === "twitter" ? "twitter_oauth_callback" : "google_oauth_callback";
+      var payload = { type: type };
+      var code = params.get("code");
+      var state = params.get("state");
+      var error = params.get("error");
+      if (code) payload.code = code;
+      if (state) payload.state = state;
+      if (error) payload.error = error;
+      if (window.opener) {
+        window.opener.postMessage(payload, window.location.origin);
+        window.close();
+      } else {
+        document.body.insertAdjacentText("beforeend", " — no opener; close this tab.");
+      }
+    })();
+  </script>
+</body>
+</html>

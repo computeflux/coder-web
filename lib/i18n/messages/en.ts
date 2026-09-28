@@ -7,6 +7,9 @@ export const enLocale: LocalePlugin = {
   messages: {
     "common.ok": "OK",
     "common.language": "Language",
+    "auth.login": "Log in",
+    "auth.logout": "Log out",
+    "auth.account": "Account",
     "common.models": "Models",
     "common.skills": "Skills",
     "common.agents": "Sub-agents",

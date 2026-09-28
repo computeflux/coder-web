@@ -7,6 +7,9 @@ export const zhCNLocale: LocalePlugin = {
   messages: {
     "common.ok": "确定",
     "common.language": "语言",
+    "auth.login": "登录",
+    "auth.logout": "登出",
+    "auth.account": "账户",
     "common.models": "模型",
     "common.skills": "技能",
     "common.agents": "子代理",
