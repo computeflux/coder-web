@@ -260,6 +260,27 @@ async function findSessionPathById(sessionId: string): Promise<string | null> {
   }
 
   const suffix = `_${sessionId}.jsonl`;
+
+  // pi 带 --session-id 时把文件写到 agent-dir 根目录（非 sessions/ 子目录）。
+  // 运行中文件在根目录，运行后 adapter 移到 sessions/<cwd-hash>/。
+  // 先搜根目录（运行中实时查看），再搜 sessions/ 子目录（运行后）。
+  const agentDir = resolvePath(getAgentDir());
+  try {
+    const rootFiles = await readdir(agentDir);
+    for (const file of rootFiles) {
+      if (!file.endsWith(suffix)) continue;
+      const candidate = join(agentDir, file);
+      try {
+        if (readSessionHeader(candidate)?.id !== sessionId) continue;
+      } catch {
+        continue;
+      }
+      return candidate;
+    }
+  } catch {
+    // agent-dir 不可读 → 继续搜 sessions/ 子目录
+  }
+
   let match: string | undefined;
   for (const projectDir of projectDirs) {
     if (!projectDir.isDirectory() && !projectDir.isSymbolicLink()) continue;

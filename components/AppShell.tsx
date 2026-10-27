@@ -802,6 +802,15 @@ export function AppShell() {
     }
   }, [handleSelectSession]);
 
+  // ?conv=<uuid>：直接按 UUID 加载会话（绕过 catalogue 查找，用于 evolve-driver 实时查看）
+  const convId = initialNavigation.convId;
+  const convRestoredRef = useRef(false);
+  useEffect(() => {
+    if (!convId || convRestoredRef.current) return;
+    convRestoredRef.current = true;
+    void handleOpenSession(convId);
+  }, [convId, handleOpenSession]);
+
   // Called by ChatWindow when a new session gets its real id from pi
   const handleSessionCreated = useCallback((session: SessionInfo, sourceDraftKey: string) => {
     setRefreshKey((k) => k + 1);

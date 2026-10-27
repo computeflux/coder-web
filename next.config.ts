@@ -22,8 +22,6 @@ const nextConfig: NextConfig = {
     "@earendil-works/pi-ai",
     "@earendil-works/pi-tui",
   ],
-  // @wetee/web3auth ships raw TS source (file: dependency) — compile it here.
-  transpilePackages: ["@wetee/web3auth"],
   // Next 16 blocks cross-origin access to dev resources by default. Allow the
   // loopback and the RFC1918 LAN ranges so the dev server stays reachable
   // from other machines on the same LAN.

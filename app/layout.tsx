@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Noto_Sans_Mono } from "next/font/google";
 import { PwaRegistration } from "@/components/PwaRegistration";
 import { AuthProvider } from "@/components/AuthProvider";
+import { SsoGate } from "@/components/SsoGate";
 import "katex/dist/katex.min.css";
 import "./globals.css";
 import "./settings.css";
@@ -71,7 +72,7 @@ export default function RootLayout({
       </head>
       <body translate="no" className="notranslate" suppressHydrationWarning>
         <AuthProvider>
-          {children}
+          <SsoGate>{children}</SsoGate>
         </AuthProvider>
         <PwaRegistration />
       </body>
