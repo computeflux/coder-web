@@ -1,3 +1,9 @@
+"use client";
+
+// SSO 门：统一登录设计（登录只在枢纽 :5181 /ops/login 页弹框）。
+// 本地无会话 / token 过期时先走 /ops/sso iframe 静默续期（跨 origin 读不到枢纽 localStorage），
+// 拿不到才跳转登录页。
+
 import { useEffect, useRef, useState } from "react";
 import {
   bumpSsoLoop,
