@@ -61,7 +61,7 @@ function currentToken(): string {
 // ⚠️ 非枢纽服务禁止自行 POST /auth/refresh：refresh token 经 ?sso= 复制到各 origin
 // 各持一份拷贝，谁先轮换谁的旧拷贝就是"重放"→ auth 的轮换+重放检测会吊销全部会话
 //（auth_audit_logs: refresh_reuse_detected）。凭证轮换只由枢纽（board-ops /login）执行；
-// 本服务 401 → 派发 auth:required → SsoGate 先走 /ops/sso iframe 由枢纽代续，失败才跳登录。
+// 本服务 401 → 派发 auth:required → SsoGate 跳枢纽换新凭证。
 
 function isSameOriginApi(url: string): boolean {
   if (url.startsWith("/api")) return true;
@@ -125,21 +125,6 @@ function AuthInner({ children }: { children: ReactNode }) {
   const [session, setSession] = useState(() =>
     typeof window !== "undefined" ? readStoredSession() : null,
   );
-
-  // 其他标签页登录/登出、或 iframe 静默续期写入新会话 → 同步本页 UI 状态
-  //（请求层 currentToken() 本来就每次现读 localStorage，这里只为 isConnected/user 展示）
-  useEffect(() => {
-    const sync = () => setSession(readStoredSession());
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === null || e.key === "web3auth:session" || e.key === "web3auth:user") sync();
-    };
-    window.addEventListener("storage", onStorage);
-    window.addEventListener("sso:session-synced", sync);
-    return () => {
-      window.removeEventListener("storage", onStorage);
-      window.removeEventListener("sso:session-synced", sync);
-    };
-  }, []);
 
   const logout = useCallback(async () => {
     const token = currentToken();
