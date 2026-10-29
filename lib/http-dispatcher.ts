@@ -1,7 +1,12 @@
 import { EventEmitter } from "node:events";
 import * as undici from "undici";
 
-export const DEFAULT_HTTP_IDLE_TIMEOUT_MS = 300_000;
+// 1 小时（旧值 5 分钟）。
+// 本地模型（llama.cpp / Qwen3.8-27B）冷启动与大上下文预填阶段只算不输出，
+// undici 的 bodyTimeout / headersTimeout 会把正常推理当成空闲连接掐断，
+// 表现为 pi-web 报 "Stream ended without finish_reason"、agent 循环静默停止
+// （2026-10-29 实测：任务因此卡死或失败）。
+export const DEFAULT_HTTP_IDLE_TIMEOUT_MS = 3_600_000;
 
 type DispatcherGlobal = typeof globalThis & {
   __piWebHttpDispatcherConfigured?: boolean;
