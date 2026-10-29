@@ -236,3 +236,30 @@ Location: `~/.pi/agent/sessions/<encoded-cwd>/<timestamp>_<uuid>.jsonl`
 --accent --user-bg --tool-bg
 --font-mono
 ```
+
+---
+
+## 脚本
+
+npm scripts（定义见 `package.json`，均在项目根执行）：
+
+| 命令 | 用途 |
+|------|------|
+| `npm run dev` | `next dev -H 0.0.0.0 -p 30141`（Turbopack，开发标准入口） |
+| `npm run dev:lan` | 与 `dev` 参数完全相同（`0.0.0.0:30141`），仅语义别名 |
+| `npm run build` | `next build --webpack`（脚本显式指定 webpack，不走 Turbopack） |
+| `npm run start` | `next start -H 127.0.0.1 -p 30141`（仅本机；需先 `npm run build`） |
+| `npm run start:lan` | `next start -H 0.0.0.0 -p 30141`（局域网/对外；需先 `npm run build`） |
+| `npm run lint` | `eslint .` |
+| `npm test` | Node 内置 test runner（`node --experimental-strip-types --test`）跑 `app/ components/ hooks/ lib/ public/` 下的 `*.test.mjs` |
+| `npm run test:terminal` | `node e2e/terminal.mjs`：终端面板 Playwright 回归测试 |
+| `npm run test:e2e` | `node e2e/run.mjs`：主 E2E 套件（自建临时 fixture，自起自停 dev server） |
+| `npm run postinstall` | `node bin/prepare-terminal.js`：`npm install` 后自动执行，仅 macOS 给 node-pty 的 `spawn-helper` 补可执行位（Linux 无操作） |
+| `npm run release` | ⚠️ `npm version patch --no-git-tag-version` + `npm run build` + `npm publish --access public`：**会改 `package.json` 版本号并直接发布到 npm**，勿随手执行 |
+
+要点：
+- Node >= 22.19（`engines`）；`npm test` 依赖 `--experimental-strip-types` 与 glob 参数，老 Node 跑不了。
+- **勿在开发 checkout 里跑 `npm run build`**：会污染 `.next/`、与 `npm run dev` 共用 `.next/dev/lock` 而把它搞坏（与上方 Quick Start 一致）。`dev` 走 Turbopack，`build` 用 webpack 是脚本写死的，且 **不要**用 `next dev --webpack` 做替代。
+- `test:e2e` / `test:terminal` 需先 `npx playwright install chromium`，并且要在**没有活动 dev server** 的 checkout 里跑（脚本断言 `.next/dev/lock` 不存在；`test:e2e` 会自己占一个 loopback 端口起服务）。
+- `test:e2e` 支持 `E2E_SERVER_MODE=start` 走 `next start`（需先 build），默认 `dev`；失败产物在 `test-results/e2e/`（截图 / trace / server log）。
+- `npm run start` 只监听 `127.0.0.1`，远程或局域网访问用 `start:lan`。
