@@ -88,6 +88,8 @@ lib/
   subagent-settings.ts  read/write ~/.pi/agent/agents/settings.json
   tool-presets.ts     PRESET_NONE/READ_ONLY/DEFAULT/FULL + getPresetFromTools()
   tool-preset-preference.ts  browser-persisted default for fresh sessions
+  session-defaults-settings.ts  read/write pi's global settings.json (default model/thinking/tools for fresh sessions; null clears)
+  session-defaults-preference.ts  maps server defaultTools to presets; browser preset wins over server defaults
   types.ts            shared TypeScript types
   normalize.ts        normalizeToolCalls() — field name mismatch between file format and our types
   worktree.ts         project/worktree resolution and git worktree operations
@@ -146,6 +148,9 @@ Pi stores toolCall blocks as `{type:"toolCall", id, name, arguments}` but `ToolC
 Tool names are passed at session creation (`POST /api/agent/new` -> `toolNames[]`) and persisted in versioned `pi-web:tool-selection` custom entries. No entry means a legacy session and keeps Pi's default behavior; an empty array means Chat only. Chat only resolves before services are created, loads no extensions/skills/prompts/themes, and replaces Pi's base prompt with the ordered contents of Pi's discovered context files. Crossing the Chat-only boundary rebuilds the wrapper; changing between nonempty presets updates it in place. Subagents persist their active tools plus profile-level skill and extension loading switches in `resourceSnapshot`; loaded extensions cannot expose the reserved `Agent`, `get_subagent_result`, or `steer_subagent` tools to a subagent. See `docs/adr/0002-chat-only-tool-selection.md`.
 
 The last preset explicitly selected by the user is stored in browser `localStorage` and initializes fresh-session composers only. Existing sessions never trust that preference; they use their live `get_tools` state or pi's default when no wrapper exists.
+
+### Fresh-session defaults (model / thinking level / built-in tools)
+Settings → General has a "new session defaults" section backed by `GET/PUT /api/settings/session-defaults` (`lib/session-defaults-settings.ts`), which reads/writes pi's global `~/.pi/agent/settings.json` fields `defaultModel`+`defaultProvider`, `defaultThinkingLevel`, and `defaultTools` (shared with the pi CLI; PUT with `null` clears a field). SettingsPanel fetches the model list from `/api/models`. The fresh-session composer preset resolves in priority order: explicit browser preset (localStorage) → server `defaultTools` mapped to the closest preset (`lib/session-defaults-preference.ts`) → `default`. AppShell refetches defaults when the settings panel closes.
 
 ### Model defaults for new sessions
 `GET /api/models` returns `defaultModel` read from `~/.pi/agent/settings.json`. `ChatWindow` pre-selects this on mount for new sessions. Explicit browser model/thinking selections are applied atomically during AgentSession construction, then `lib/startup-preferences.ts` persists their effective values without replaying `set_model`/`set_thinking_level`; implicit `enabledModels` fallbacks and thinking pins are not persisted.

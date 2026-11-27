@@ -162,6 +162,17 @@ export function AppShell() {
   const [explorerRefreshKey, setExplorerRefreshKey] = useState(0);
   const [settingsSection, setSettingsSection] = useState<SettingsSection | null>(null);
   const [modelsRefreshKey, setModelsRefreshKey] = useState(0);
+  const [sessionDefaultTools, setSessionDefaultTools] = useState<string[] | undefined>(undefined);
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetch("/api/settings/session-defaults", { signal: controller.signal })
+      .then(async (response) => {
+        const data = await response.json() as { defaults?: { toolNames?: string[] }; error?: string };
+        if (response.ok && !data.error) setSessionDefaultTools(data.defaults?.toolNames);
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
   const [projectTrust, setProjectTrust] = useState<ProjectTrustStatus | null>(null);
   const [projectTrustDialogOpen, setProjectTrustDialogOpen] = useState(false);
   const [projectTrustBusy, setProjectTrustBusy] = useState(false);
@@ -2369,6 +2380,7 @@ export function AppShell() {
               onSessionCreated={handleSessionCreated}
               onSessionForked={handleSessionForked}
               modelsRefreshKey={modelsRefreshKey}
+              serverDefaultTools={sessionDefaultTools}
               chatInputRef={chatInputRef}
               onBranchDataChange={handleBranchDataChange}
               onSystemPromptChange={handleSystemPromptChange}
@@ -2554,6 +2566,12 @@ export function AppShell() {
         onClose={() => {
           setSettingsSection(null);
           setModelsRefreshKey((key) => key + 1);
+          void fetch("/api/settings/session-defaults")
+            .then(async (response) => {
+              const data = await response.json() as { defaults?: { toolNames?: string[] }; error?: string };
+              if (response.ok && !data.error) setSessionDefaultTools(data.defaults?.toolNames);
+            })
+            .catch(() => {});
         }}
         onSessionReloaded={() => setSessionKey((key) => key + 1)}
       />

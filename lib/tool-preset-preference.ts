@@ -1,6 +1,10 @@
 import { isToolPreset, type ToolPreset } from "./tool-presets";
 
-const STORAGE_KEY = "pi-tool-preset";
+// Browser-persisted tool preset for fresh sessions. Kept separate from pi's
+// settings.json so a preset chosen in this browser never rewrites the global
+// server-side default that the pi CLI shares.
+
+const PRESET_STORAGE_KEY = "pi-tool-preset";
 
 interface StorageLike {
   getItem(key: string): string | null;
@@ -21,7 +25,7 @@ export function getPreferredToolPreset(
 ): ToolPreset {
   if (!storage) return "default";
   try {
-    const value = storage.getItem(STORAGE_KEY);
+    const value = storage.getItem(PRESET_STORAGE_KEY);
     return isToolPreset(value) ? value : "default";
   } catch {
     return "default";
@@ -34,7 +38,7 @@ export function setPreferredToolPreset(
 ): void {
   if (!storage) return;
   try {
-    storage.setItem(STORAGE_KEY, preset);
+    storage.setItem(PRESET_STORAGE_KEY, preset);
   } catch {
     // Browser storage is best-effort.
   }

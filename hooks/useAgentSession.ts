@@ -16,6 +16,7 @@ import { normalizeToolCalls } from "@/lib/normalize";
 import { isPromptRejectedError, sendAgentCommand } from "@/lib/agent-client";
 import { clearDraft, rekeyDraft, restoreDraftSubmission } from "@/lib/draft-store";
 import { getPreferredToolPreset, setPreferredToolPreset } from "@/lib/tool-preset-preference";
+import { resolveFreshSessionPreset } from "@/lib/session-defaults-preference";
 import { getPresetFromToolNames, getToolNamesForPreset, type ToolEntry, type ToolPreset } from "@/lib/tool-presets";
 import type { SessionStatsInfo } from "@/lib/pi-types";
 import { mergeSessionStats, type SessionFileStats } from "@/lib/session-stats";
@@ -156,6 +157,8 @@ export interface UseAgentSessionOptions {
   onSystemInfoLoaderChange?: (loader: (() => Promise<void>) | null) => void;
   onSessionStatsPanelOpen?: () => void;
   setToolPreset?: (preset: ToolPreset) => void;
+  /** Server-side fresh-session defaults (pi settings.json), fetched by AppShell. */
+  serverDefaultTools?: string[];
   deferInitialScroll?: boolean;
 }
 
@@ -275,6 +278,7 @@ export function useAgentSession(opts: UseAgentSessionOptions) {
   const {
     session, sessionRunning, newSessionCwd, newSessionDraftKey, onAgentEnd, onAttentionNeeded, onSessionCreated, onSessionForked,
     modelsRefreshKey, onBranchDataChange, onSystemPromptChange, onSystemToolsChange, onSystemInfoLoaderChange, onSessionStatsPanelOpen,
+    serverDefaultTools,
   } = opts;
 
   const isNew = session === null && newSessionCwd !== null;
@@ -384,8 +388,8 @@ export function useAgentSession(opts: UseAgentSessionOptions) {
 
   useLayoutEffect(() => {
     if (!existingSessionId && (!isNew || sessionIdRef.current)) return;
-    setToolPresetState(getPreferredToolPreset());
-  }, [existingSessionId, isNew, setToolPresetState]);
+    setToolPresetState(resolveFreshSessionPreset(getPreferredToolPreset(), serverDefaultTools));
+  }, [existingSessionId, isNew, setToolPresetState, serverDefaultTools]);
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
     const container = scrollContainerRef.current;

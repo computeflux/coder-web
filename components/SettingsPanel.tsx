@@ -21,11 +21,20 @@ import {
   isThinkingExpandedByDefault,
   setThinkingExpandedByDefault,
 } from "@/lib/thinking-expansion-preference";
+import { getPreferredToolPreset } from "@/lib/tool-preset-preference";
+import { mapToolNamesToPreset } from "@/lib/session-defaults-preference";
+import { PRESET_NONE, PRESET_READ_ONLY, PRESET_DEFAULT, PRESET_FULL } from "@/lib/tool-presets";
 import { ModelsConfig } from "./ModelsConfig";
 import { SkillsConfig } from "./SkillsConfig";
 import { AgentsConfig } from "./AgentsConfig";
 import { PluginsConfig } from "./PluginsConfig";
 import { ConfigButton, ConfigSwitch } from "./SettingsUi";
+
+interface SessionDefaultsState {
+  model?: { provider: string; modelId: string };
+  thinkingLevel?: string;
+  toolNames?: string[];
+}
 
 interface Props {
   cwd: string | null;
@@ -69,6 +78,62 @@ function GeneralSettings({ sessionId, onSessionReloaded, quoteSelectionEnabled, 
   useEffect(() => {
     setThinkingExpanded(isThinkingExpandedByDefault());
   }, []);
+
+  const [sessionDefaults, setSessionDefaults] = useState<SessionDefaultsState | null>(null);
+  const [sessionModelOptions, setSessionModelOptions] = useState<{ provider: string; modelId: string; name: string }[]>([]);
+  const [defaultsSaving, setDefaultsSaving] = useState(false);
+  const [defaultsError, setDefaultsError] = useState<string | null>(null);
+  const [defaultsSaved, setDefaultsSaved] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    void Promise.all([
+      fetch("/api/settings/session-defaults").then(async (response) => {
+        const data = await response.json() as { defaults?: SessionDefaultsState; error?: string };
+        if (!response.ok || data.error) throw new Error(data.error ?? `HTTP ${response.status}`);
+        return data.defaults ?? {};
+      }),
+      fetch("/api/models").then(async (response) => {
+        const data = await response.json() as { modelList?: { id: string; name: string; provider: string }[]; error?: string };
+        if (!response.ok || data.error) throw new Error(data.error ?? `HTTP ${response.status}`);
+        return (data.modelList ?? []).map((m) => ({ provider: m.provider, modelId: m.id, name: m.name }));
+      }),
+    ])
+      .then(([defaults, models]) => {
+        if (cancelled) return;
+        setSessionDefaults(defaults);
+        setSessionModelOptions(models);
+      })
+      .catch((cause) => {
+        if (!cancelled) setDefaultsError(cause instanceof Error ? cause.message : String(cause));
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  const saveSessionDefaults = async (update: {
+    model?: { provider: string; modelId: string } | null;
+    thinkingLevel?: string | null;
+    toolNames?: string[] | null;
+  }) => {
+    setDefaultsSaving(true);
+    setDefaultsError(null);
+    setDefaultsSaved(false);
+    try {
+      const response = await fetch("/api/settings/session-defaults", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(update),
+      });
+      const data = await response.json() as { defaults?: SessionDefaultsState; error?: string };
+      if (!response.ok || data.error) throw new Error(data.error ?? `HTTP ${response.status}`);
+      setSessionDefaults(data.defaults ?? {});
+      setDefaultsSaved(true);
+    } catch (cause) {
+      setDefaultsError(cause instanceof Error ? cause.message : String(cause));
+    } finally {
+      setDefaultsSaving(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -208,6 +273,103 @@ function GeneralSettings({ sessionId, onSessionReloaded, quoteSelectionEnabled, 
           {shellError && <p role="alert" className="settings-general-error">{shellError}</p>}
         </section>
       )}
+
+      <section className="settings-general-section">
+        <h3 className="settings-general-heading">{t("settings.newSessionDefaults")}</h3>
+        <p className="settings-general-description">{t("settings.newSessionDefaultsDescription")}</p>
+        {!sessionDefaults ? (
+          <p className="settings-general-description">{t("settings.newSessionDefaultsLoading")}</p>
+        ) : (
+          <div className="settings-chat-options">
+            <div className="settings-chat-option settings-chat-switch-option">
+              <label htmlFor="settings-default-model">{t("settings.defaultModel")}</label>
+              <select
+                id="settings-default-model"
+                className="settings-default-select"
+                disabled={defaultsSaving}
+                value={sessionDefaults.model ? `${sessionDefaults.model.provider}/${sessionDefaults.model.modelId}` : ""}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  if (!value) {
+                    void saveSessionDefaults({ model: null });
+                    return;
+                  }
+                  const index = value.lastIndexOf("/");
+                  void saveSessionDefaults({ model: { provider: value.slice(0, index), modelId: value.slice(index + 1) } });
+                }}
+              >
+                <option value="">{t("settings.defaultModelAuto")}</option>
+                {sessionModelOptions.map((m) => (
+                  <option key={`${m.provider}/${m.modelId}`} value={`${m.provider}/${m.modelId}`}>
+                    {m.name || m.modelId} ({m.provider})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="settings-chat-option settings-chat-switch-option">
+              <label htmlFor="settings-default-thinking">{t("settings.defaultThinkingLevel")}</label>
+              <select
+                id="settings-default-thinking"
+                className="settings-default-select"
+                disabled={defaultsSaving}
+                value={sessionDefaults.thinkingLevel ?? ""}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  void saveSessionDefaults({ thinkingLevel: value || null });
+                }}
+              >
+                <option value="">{t("settings.defaultThinkingAuto")}</option>
+                {["off", "minimal", "low", "medium", "high", "xhigh", "max"].map((level) => (
+                  <option key={level} value={level}>{level}</option>
+                ))}
+              </select>
+            </div>
+            <div className="settings-chat-option settings-chat-switch-option">
+              <label htmlFor="settings-default-tools">{t("settings.defaultTools")}</label>
+              <select
+                id="settings-default-tools"
+                className="settings-default-select"
+                disabled={defaultsSaving}
+                value={(() => {
+                  const mapped = mapToolNamesToPreset(sessionDefaults.toolNames);
+                  if (mapped) return mapped;
+                  const key = [...(sessionDefaults.toolNames ?? [])].sort().join(",");
+                  return key ? `custom:${key}` : "";
+                })()}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  if (!value) {
+                    void saveSessionDefaults({ toolNames: null });
+                    return;
+                  }
+                  const names = value === "none" ? PRESET_NONE
+                    : value === "read-only" ? PRESET_READ_ONLY
+                    : value === "full" ? PRESET_FULL
+                    : [...PRESET_DEFAULT];
+                  void saveSessionDefaults({ toolNames: names });
+                }}
+              >
+                <option value="">{t("settings.defaultToolsPiDefault")}</option>
+                <option value="none">{t("settings.defaultToolsNone")}</option>
+                <option value="read-only">{t("settings.defaultToolsReadOnly")}</option>
+                <option value="default">{t("settings.defaultToolsDefault")}</option>
+                <option value="full">{t("settings.defaultToolsFull")}</option>
+                {(() => {
+                  const names = sessionDefaults.toolNames;
+                  if (!names || names.length === 0 || mapToolNamesToPreset(names)) return null;
+                  const key = [...names].sort().join(", ");
+                  return <option value={`custom:${[...names].sort().join(",")}`}>{`${t("settings.defaultToolsCustom")}: ${key}`}</option>;
+                })()}
+              </select>
+            </div>
+            {getPreferredToolPreset() !== "default" && (
+              <p className="settings-general-description">{t("settings.newSessionDefaultsBrowserNote")}</p>
+            )}
+            {defaultsSaved && <p className="settings-general-description">{t("settings.newSessionDefaultsSaved")}</p>}
+            {defaultsError && <p role="alert" className="settings-general-error">{defaultsError}</p>}
+          </div>
+        )}
+      </section>
 
       <section className="settings-general-section">
         <h3 className="settings-general-heading">{t("common.language")}</h3>

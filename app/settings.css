@@ -1035,6 +1035,22 @@
   accent-color: var(--accent);
 }
 
+.settings-default-select {
+  max-width: 260px;
+  height: 28px;
+  padding: 0 8px;
+  background: var(--bg-elevated, var(--bg));
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  font-size: 13px;
+}
+
+.settings-default-select:focus-visible {
+  outline: 1px solid var(--accent, var(--text));
+  outline-offset: 1px;
+}
+
 .settings-language-options {
   display: flex;
   flex-direction: column;
