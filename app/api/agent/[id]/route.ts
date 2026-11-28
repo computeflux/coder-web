@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { resolveSessionPath } from "@/lib/session-reader";
 import { startRpcSession, getRpcSession, setRpcSessionTools } from "@/lib/rpc-manager";
+import { resolveToolSelection } from "@/lib/tool-presets";
 
 // POST /api/agent/[id] - Send a command to an existing session
 export async function POST(
@@ -14,14 +15,9 @@ export async function POST(
   try {
     const body = await req.json() as { type: string; [key: string]: unknown };
     commandType = typeof body.type === "string" ? body.type : undefined;
-    const requestedToolNames = body.toolNames;
-    if (
-      requestedToolNames !== undefined
-      && (!Array.isArray(requestedToolNames) || requestedToolNames.some((name) => typeof name !== "string"))
-    ) {
-      throw new Error("toolNames must be an array of strings");
-    }
-    const toolNames = requestedToolNames as string[] | undefined;
+    // Accept either an explicit toolNames array or a preset name (e.g. "full");
+    // presets resolve through lib/tool-presets.ts, the single source of truth.
+    const toolNames = resolveToolSelection(body.toolNames, body.toolPreset);
 
     // Fast path: already-running session
     const existing = getRpcSession(id);

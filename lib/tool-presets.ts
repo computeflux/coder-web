@@ -46,3 +46,31 @@ export function getToolNamesForPreset(preset: ToolPreset): string[] {
   if (preset === "full") return [...PRESET_FULL];
   return [...PRESET_DEFAULT];
 }
+
+/**
+ * Resolve an API request's tool selection. Callers may pass either an explicit
+ * toolNames array or a preset name (`full`, `default`, ...); the preset is
+ * expanded here so clients (e.g. the evolve-driver coder adapter) never need to
+ * duplicate the preset arrays.
+ */
+export function resolveToolSelection(
+  toolNames: unknown,
+  toolPreset: unknown,
+): string[] | undefined {
+  if (toolNames !== undefined && toolPreset !== undefined) {
+    throw new Error("Provide either toolNames or toolPreset, not both");
+  }
+  if (toolNames !== undefined) {
+    if (!Array.isArray(toolNames) || toolNames.some((name) => typeof name !== "string")) {
+      throw new Error("toolNames must be an array of strings");
+    }
+    return toolNames as string[];
+  }
+  if (toolPreset !== undefined) {
+    if (!isToolPreset(toolPreset)) {
+      throw new Error(`Invalid tool preset: ${String(toolPreset)} (expected ${TOOL_PRESET_VALUES.join(" | ")})`);
+    }
+    return getToolNamesForPreset(toolPreset);
+  }
+  return undefined;
+}

@@ -15,7 +15,7 @@ import { isBlockingExtensionUiRequest } from "@/lib/browser-notifications";
 import { normalizeToolCalls } from "@/lib/normalize";
 import { isPromptRejectedError, sendAgentCommand } from "@/lib/agent-client";
 import { clearDraft, rekeyDraft, restoreDraftSubmission } from "@/lib/draft-store";
-import { getPreferredToolPreset, setPreferredToolPreset } from "@/lib/tool-preset-preference";
+import { getExplicitToolPreset, setPreferredToolPreset } from "@/lib/tool-preset-preference";
 import { resolveFreshSessionPreset } from "@/lib/session-defaults-preference";
 import { getPresetFromToolNames, getToolNamesForPreset, type ToolEntry, type ToolPreset } from "@/lib/tool-presets";
 import type { SessionStatsInfo } from "@/lib/pi-types";
@@ -388,7 +388,7 @@ export function useAgentSession(opts: UseAgentSessionOptions) {
 
   useLayoutEffect(() => {
     if (!existingSessionId && (!isNew || sessionIdRef.current)) return;
-    setToolPresetState(resolveFreshSessionPreset(getPreferredToolPreset(), serverDefaultTools));
+    setToolPresetState(resolveFreshSessionPreset(getExplicitToolPreset(), serverDefaultTools));
   }, [existingSessionId, isNew, setToolPresetState, serverDefaultTools]);
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {

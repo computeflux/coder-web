@@ -21,7 +21,7 @@ import {
   isThinkingExpandedByDefault,
   setThinkingExpandedByDefault,
 } from "@/lib/thinking-expansion-preference";
-import { getPreferredToolPreset } from "@/lib/tool-preset-preference";
+import { getExplicitToolPreset } from "@/lib/tool-preset-preference";
 import { mapToolNamesToPreset } from "@/lib/session-defaults-preference";
 import { PRESET_NONE, PRESET_READ_ONLY, PRESET_DEFAULT, PRESET_FULL } from "@/lib/tool-presets";
 import { ModelsConfig } from "./ModelsConfig";
@@ -362,7 +362,7 @@ function GeneralSettings({ sessionId, onSessionReloaded, quoteSelectionEnabled, 
                 })()}
               </select>
             </div>
-            {getPreferredToolPreset() !== "default" && (
+            {getExplicitToolPreset() !== null && (
               <p className="settings-general-description">{t("settings.newSessionDefaultsBrowserNote")}</p>
             )}
             {defaultsSaved && <p className="settings-general-description">{t("settings.newSessionDefaultsSaved")}</p>}

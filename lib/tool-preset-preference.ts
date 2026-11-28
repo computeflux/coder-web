@@ -20,16 +20,24 @@ function getBrowserStorage(): StorageLike | null {
   }
 }
 
+// null = no explicit choice in this browser (fresh composers then follow pi's
+// settings.json defaultTools); an explicit "default" preset is still a choice.
+export function getExplicitToolPreset(
+  storage: StorageLike | null = getBrowserStorage(),
+): ToolPreset | null {
+  if (!storage) return null;
+  try {
+    const value = storage.getItem(PRESET_STORAGE_KEY);
+    return isToolPreset(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
 export function getPreferredToolPreset(
   storage: StorageLike | null = getBrowserStorage(),
 ): ToolPreset {
-  if (!storage) return "default";
-  try {
-    const value = storage.getItem(PRESET_STORAGE_KEY);
-    return isToolPreset(value) ? value : "default";
-  } catch {
-    return "default";
-  }
+  return getExplicitToolPreset(storage) ?? "default";
 }
 
 export function setPreferredToolPreset(

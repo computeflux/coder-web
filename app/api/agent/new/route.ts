@@ -5,6 +5,7 @@ import { randomUUID } from "crypto";
 import { allowFileRoot } from "@/lib/file-access";
 import { invalidateSessionListCache } from "@/lib/session-reader";
 import { startRpcSession } from "@/lib/rpc-manager";
+import { resolveToolSelection } from "@/lib/tool-presets";
 
 const THINKING_LEVELS = new Set<ThinkingLevel>(["off", "minimal", "low", "medium", "high", "xhigh", "max"]);
 
@@ -45,10 +46,12 @@ export async function POST(req: Request) {
     }
 
     // Use a one-time key so startRpcSession's lock doesn't conflict with real session ids
-    const { provider, modelId, toolNames, thinkingLevel, ...promptCommand } = command as { provider?: string; modelId?: string; toolNames?: string[]; thinkingLevel?: unknown; [key: string]: unknown };
+    const { provider, modelId, toolNames, toolPreset, thinkingLevel, ...promptCommand } = command as { provider?: string; modelId?: string; toolNames?: string[]; toolPreset?: unknown; thinkingLevel?: unknown; [key: string]: unknown };
     if ((provider && !modelId) || (!provider && modelId)) {
       throw new Error("provider and modelId must be provided together");
     }
+    // toolPreset is expanded from lib/tool-presets.ts so clients never duplicate the arrays.
+    const selectedToolNames = resolveToolSelection(toolNames, toolPreset);
     const explicitThinkingLevel = parseThinkingLevel(thinkingLevel);
 
     // Must be unique per request: startRpcSession coalesces concurrent callers
@@ -56,7 +59,7 @@ export async function POST(req: Request) {
     // requests in the same millisecond, merging two new sessions into one.
     const tempKey = `__new__${randomUUID()}`;
     const { session, realSessionId } = await startRpcSession(tempKey, "", cwd, {
-      ...(toolNames ? { toolNames } : {}),
+      ...(selectedToolNames ? { toolNames: selectedToolNames } : {}),
       ...(provider && modelId ? { initialModel: { provider, modelId } } : {}),
       ...(explicitThinkingLevel ? { thinkingLevel: explicitThinkingLevel } : {}),
     });
